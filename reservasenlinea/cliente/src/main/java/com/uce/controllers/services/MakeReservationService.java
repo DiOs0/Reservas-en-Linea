@@ -20,9 +20,9 @@ public class MakeReservationService {
         this.userCase=userCase;
     }
 
-    public String makeReservation(String userName,Date fechaReserva,Integer numeroComensales){
+    public String makeReservation(String userName,Date fechaReserva,Integer numeroComensales, Integer mesaReservada,String emailUser) {
         
-        return userCase.makeReservation(userName, fechaReserva, numeroComensales);
+        return userCase.makeReservation(userName, fechaReserva, numeroComensales, mesaReservada, emailUser);
     }
 
 }

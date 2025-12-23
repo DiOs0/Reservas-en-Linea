@@ -23,15 +23,16 @@ public class MakeReservationUserCase {
     private EntityManager em;
 
 
-    public String makeReservation(String userName,Date fechaReserva,Integer numeroComensales){
+    public String makeReservation(String userName,Date fechaReserva,Integer numeroComensales,Integer mesaReservada,String emailUser) {
         
         ReservaEntity reserva= ReservaEntity.builder()
                         .reservaId(UUIDReservers.generateUUID())
                                 .userName(userName)
                                 .fechaReserva(fechaReserva)
-                                .estadoReserva("Pendiente")
-                                .mesaReservada(-1)
-                                .numeroComensales(numeroComensales).build();
+                                .estadoReserva("Reservada")
+                                .mesaReservada(mesaReservada)
+                                .numeroComensales(numeroComensales)
+                                .emailUser(emailUser).build();
 
 
         em.getTransaction().begin();

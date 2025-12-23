@@ -26,6 +26,7 @@ public class ReservaEntity {
     private String estadoReserva;
     private Integer mesaReservada;
     private Integer numeroComensales;
+    private String emailUser;
 
 
 }
