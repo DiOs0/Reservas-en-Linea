@@ -15,7 +15,7 @@ public class CheckAvailabilityUserCase {
     @Inject
     private EntityManager em;
 
-    public List<Integer> obtenerMesasDisponibles(Date fecha) {
+    public List<Integer> obtenerMesasDisponibles(java.util.Date fechaReserva) {
         // Rango de mesas maximas
         List<Integer> todasLasMesas = IntStream.rangeClosed(1, 20)
                                                .boxed()
@@ -27,7 +27,7 @@ public class CheckAvailabilityUserCase {
             "SELECT r.mesaReservada FROM ReservaEntity r " +
             "WHERE r.fechaReserva = :fecha AND r.estadoReserva != 'Cancelada'", 
             Integer.class)
-            .setParameter("fecha", fecha)
+            .setParameter("fecha", fechaReserva)
             .getResultList();
 
         // 3. Restamos las ocupadas de las totales para obtener las disponibles

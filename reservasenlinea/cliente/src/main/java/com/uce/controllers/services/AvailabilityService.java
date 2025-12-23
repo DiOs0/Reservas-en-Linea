@@ -30,4 +30,9 @@ public class AvailabilityService {
             }
         }
     }
+
+
+    public List<Integer> obtenerMesasLibres(Date fechaReserva) {
+        return checkUseCase.obtenerMesasDisponibles(fechaReserva);
+    }
 }

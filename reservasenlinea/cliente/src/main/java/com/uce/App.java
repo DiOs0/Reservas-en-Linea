@@ -1,7 +1,12 @@
 
 package com.uce;
 import java.sql.Date;
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Scanner;
 import java.util.UUID;
+
 
 import com.uce.controllers.services.AvailabilityService;
 import com.uce.controllers.services.MakeReservationService;
@@ -14,60 +19,80 @@ import jakarta.enterprise.inject.se.SeContainerInitializer;
 
 
 public class App {
-
-    public static void main(String[] args) throws InterruptedException {
-
-
-
-        //MI IDEA ES HACER UN MENU SIMPLEMENTE PARA PROBAR CADA CDU
-        //es decir del 1 al 11 de los casos de uso, e ingresa todo quemado los datos y listo 
-
-
+    public static void main(String[] args) {
         try (SeContainer container = SeContainerInitializer.newInstance().initialize()) {
-
-
-            //Creamos el usuario/entidad reserva
-            ReservaEntity usuario_reserva = ReservaEntity.builder()
-                    .userName("Joel Aaron Ledesma")
-                    .fechaReserva(new Date(System.currentTimeMillis()))
-                    .numeroComensales(2)
-                    .mesaReservada(5)
-                    .emailUser("carlos@example.com")
-                    .build();
             
-            
-            
-
-            //Usando el CDU01 – Consultar disponibilidad de mesas
-            AvailabilityService service = container.select(AvailabilityService.class).get();
-            Date fechaConsulta = new Date(System.currentTimeMillis()); 
-            
-            System.out.println("=== CONSULTANDO DISPONIBILIDAD ===");
-            service.consultarDisponibilidad(fechaConsulta);
-
-
-            //Usando el Make reservation service para crear una reserva en la bdd (CDU02 – Realizar reserva online)
-            MakeReservationService app = container.select(MakeReservationService.class).get();
-            String id = app.makeReservation(usuario_reserva.getUserName(),
-                                            usuario_reserva.getFechaReserva(),
-                                            usuario_reserva.getNumeroComensales(),
-                                            usuario_reserva.getMesaReservada(),
-                                            usuario_reserva.getEmailUser()
-                                            );
-            System.out.println("Reserva creada con ID: " + id);
-
-
-
-            //Usando el CDU03 – Recibir confirmación de reserva por correo
+            // Obtenemos los servicios necesarios
+            AvailabilityService availabilityService = container.select(AvailabilityService.class).get();
+            MakeReservationService reservationService = container.select(MakeReservationService.class).get();
             NotificationService notificationService = container.select(NotificationService.class).get();
+            
+            Scanner scanner = new Scanner(System.in);
 
-            System.out.println("=== INICIANDO CDU03 ===");
-            String resultado = notificationService.procesarNotificacion(usuario_reserva,id);
-            System.out.println(resultado);
+            System.out.println("======= BIENVENIDO A RESERVAS UCE =======");
 
+            // PASO 1: Ingreso de Fecha y Consulta de Disponibilidad
+            System.out.print("Ingrese la fecha para su reserva (yyyy-MM-dd/): ");
+            String fechaStr = scanner.nextLine();
+            LocalDate localDate = LocalDate.parse(fechaStr);
+            Date fecha = Date.valueOf(localDate);
 
+            List<Integer> disponibles = availabilityService.obtenerMesasLibres(fecha);
 
+            if (disponibles.isEmpty()) {
+                System.out.println("Lo sentimos, no hay mesas disponibles para esa fecha.");
+                return; // Finaliza el programa si no hay cupo
+            }
+
+            System.out.println("\nMesas disponibles para esa fecha:");
+            availabilityService.consultarDisponibilidad(fecha);
+
+            // PASO 2: Selección de Mesa
+            System.out.print("\nElija el número de mesa que desea: ");
+            int mesaSeleccionada = Integer.parseInt(scanner.nextLine());
+
+            if (!disponibles.contains(mesaSeleccionada)) {
+                System.out.println("Error: Esa mesa no está disponible o no existe.");
+                return;
+            }
+
+            // PASO 3: Ingreso de datos personales (Login/Registro)
+            System.out.println("\n--- Por favor, ingrese sus datos para confirmar ---");
+            System.out.print("Nombre completo: ");
+            String nombre = scanner.nextLine();
+
+            System.out.print("Correo electrónico: ");
+            String email = scanner.nextLine();
+
+            System.out.print("Número de comensales: ");
+            int comensales = Integer.parseInt(scanner.nextLine());
+
+            // PASO 4: Ejecución del Flujo Final (Guardado + Notificación)
+            System.out.println("\nProcesando su solicitud...");
+            
+            String id=reservationService.makeReservation(
+                nombre, 
+                fecha, 
+                comensales, 
+                mesaSeleccionada, 
+                email
+            );
+            ReservaEntity reserva = ReservaEntity.builder()
+                                        .userName(nombre)
+                                        .fechaReserva(fecha)
+                                        .mesaReservada(mesaSeleccionada)
+                                        .numeroComensales(comensales)
+                                        .emailUser(email)
+                                        .build();
+
+            String res=notificationService.procesarNotificacion(reserva,id);
+            System.out.println(res);
+
+            System.out.println("\n¡Gracias por preferirnos!");
+
+        } catch (Exception e) {
+            System.err.println("\nOcurrió un error: " + e.getMessage());
+            System.out.println("Asegúrese de ingresar los datos en el formato correcto.");
         }
-
     }
 }
