@@ -4,7 +4,7 @@ package com.uce.logic.usercases;
 
 import java.sql.Date;
 import com.uce.data.entities.ReservaEntity;
-
+import com.uce.logic.validators.CapacityValidator;
 import com.uce.logic.validators.UUIDReservers;
 
 import jakarta.enterprise.context.ApplicationScoped;
@@ -22,8 +22,16 @@ public class MakeReservationUserCase {
     @Inject
     private EntityManager em;
 
+    @Inject
+    private CapacityValidator capacityValidator;
+
 
     public String makeReservation(String userName,Date fechaReserva,Integer numeroComensales,Integer mesaReservada,String emailUser) {
+
+
+        if (!capacityValidator.hayEspacioDisponible(fechaReserva)) {
+            throw new RuntimeException("Capacidad máxima del restaurante alcanzada para esta fecha.");
+        }
         
         ReservaEntity reserva= ReservaEntity.builder()
                         .reservaId(UUIDReservers.generateUUID())

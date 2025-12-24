@@ -21,8 +21,6 @@ public class CheckAvailabilityUserCase {
                                                .boxed()
                                                .collect(Collectors.toList());
 
-        // Consultamos qué mesas ya están reservadas en esa fecha
-        // Usamos JPQL para traer solo los números de mesa ocupados
         List<Integer> mesasOcupadas = em.createQuery(
             "SELECT r.mesaReservada FROM ReservaEntity r " +
             "WHERE r.fechaReserva = :fecha AND r.estadoReserva != 'Cancelada'", 

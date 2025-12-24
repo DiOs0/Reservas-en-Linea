@@ -1,24 +1,21 @@
 
 package com.uce;
 import java.sql.Date;
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Scanner;
-import java.util.UUID;
 
 
 import com.uce.controllers.services.AvailabilityService;
 import com.uce.controllers.services.MakeReservationService;
 import com.uce.controllers.services.NotificationService;
 import com.uce.data.entities.ReservaEntity;
-import com.uce.logic.usercases.MakeReservationUserCase;
 
 import jakarta.enterprise.inject.se.SeContainer;
 import jakarta.enterprise.inject.se.SeContainerInitializer;
 
 
-public class App {
+public class UserApp {
     public static void main(String[] args) {
         try (SeContainer container = SeContainerInitializer.newInstance().initialize()) {
             
