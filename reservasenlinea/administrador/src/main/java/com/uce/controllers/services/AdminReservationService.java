@@ -4,12 +4,15 @@ import java.sql.Date;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import java.util.Scanner;
 
 import com.uce.data.entities.ReservaEntity;
 import com.uce.logic.usercases.CancelReservationUserCase;
+import com.uce.logic.usercases.CheckAdminAvailabilityUserCase;
 import com.uce.logic.usercases.EditReservationUserCase;
 import com.uce.logic.usercases.ListReservationsUserCase;
+import com.uce.logic.usercases.ManualReservationUserCase;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -25,6 +28,12 @@ public class AdminReservationService {
 
     @Inject
     private EditReservationUserCase editUseCase;
+
+    @Inject
+    private CheckAdminAvailabilityUserCase availabilityUseCase;
+
+    @Inject
+    private ManualReservationUserCase manualUseCase;
 
     public void mostrarReporteReservas() {
         List<ReservaEntity> reservas = listUseCase.obtenerTodasLasReservas();
@@ -104,6 +113,69 @@ public class AdminReservationService {
 
         } catch (Exception e) {
             System.out.println("ERROR: Formato de dato incorrecto. No se guardaron cambios.");
+        }
+    }
+
+
+
+    public void mostrarDisponibilidadTotal(Date fecha) {
+        List<ReservaEntity> ocupadas = availabilityUseCase.obtenerOcupacionPorFecha(fecha);
+
+        System.out.println("\n==========================================================");
+        System.out.println("      ESTADO DE OCUPACIÓN - FECHA: " + fecha.toString());
+        System.out.println("==========================================================");
+        System.out.printf("%-10s | %-12s | %-20s%n", "MESA", "ESTADO", "CLIENTE");
+        System.out.println("----------------------------------------------------------");
+
+        
+        for (int i = 1; i <= 20; i++) {
+            final int numeroMesa = i;
+            
+            Optional<ReservaEntity> reserva = ocupadas.stream()
+                .filter(r -> r.getMesaReservada() == numeroMesa)
+                .findFirst();
+
+            if (reserva.isPresent()) {
+                System.out.printf("Mesa %-5d | [OCUPADA]   | %-20s%n", 
+                                  i, reserva.get().getUserName());
+            } else {
+                System.out.printf("Mesa %-5d | [LIBRE]     | %-20s%n", 
+                                  i, "---");
+            }
+        }
+        System.out.println("==========================================================");
+    }
+
+
+    public void procesarReservaManual(Scanner scanner) {
+        System.out.println("\n--- REGISTRO DE RESERVA MANUAL (ADMIN) ---");
+        
+        try {
+            System.out.print("Nombre del Cliente: ");
+            String nombre = scanner.nextLine();
+
+            System.out.print("Fecha (yyyy-MM-dd): ");
+            java.sql.Date fecha = java.sql.Date.valueOf(scanner.nextLine());
+
+            System.out.print("Número de Mesa: ");
+            int mesa = Integer.parseInt(scanner.nextLine());
+
+            System.out.print("Número de Comensales: ");
+            int personas = Integer.parseInt(scanner.nextLine());
+
+            System.out.print("Correo de contacto: ");
+            String email = scanner.nextLine();
+
+            // Llamada al caso de uso
+            ReservaEntity creada = manualUseCase.registrarReserva(nombre, fecha, mesa, personas, email);
+            
+            System.out.println("\nÉXITO: Reserva manual creada.");
+            System.out.println("ID Generado: " + creada.getReservaId());
+
+        } catch (IllegalArgumentException e) {
+            System.out.println("ERROR: Formato de fecha u número incorrecto.");
+        } catch (RuntimeException e) {
+            System.out.println("ERROR DE NEGOCIO: " + e.getMessage());
         }
     }
 

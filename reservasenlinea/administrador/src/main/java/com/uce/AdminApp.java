@@ -27,7 +27,9 @@ public class AdminApp {
                 System.out.println("1. Consultar Listado de Reservas");
                 System.out.println("2. Cancelar una Reserva por ID");
                 System.out.println("3. Editar una Reserva por ID");
-                System.out.println("4. Salir");
+                System.out.println("4. Consultar las Fechas disponibles");
+                System.out.println("5. Ingresar una Reserva Manualmente");
+                System.out.println("6. Salir");
                 System.out.print("Seleccione una opción: ");
                 
                 opcion = Integer.parseInt(scanner.nextLine());
@@ -46,12 +48,25 @@ public class AdminApp {
                         adminService.procesarEdicion(scanner.nextLine(), scanner);
                         break;
                     case 4:
-                        System.out.println("Saliendo...");
+                        System.out.print("\nIngrese la fecha a consultar (yyyy-MM-dd): ");
+                        try {
+                            String fStr = scanner.nextLine();
+                            java.sql.Date f = java.sql.Date.valueOf(fStr);
+                            adminService.mostrarDisponibilidadTotal(f);
+                        } catch (Exception e) {
+                            System.out.println("❌ Formato de fecha inválido.");
+                        }
+                        break;
+                    case 5:
+                        adminService.procesarReservaManual(scanner);
+                        break;
+                    case 6:
+                        System.out.println("Saliendo del panel de administración. ¡Hasta luego!");
                         break;
                     default:
                         System.out.println("Opción no válida.");
                 }
-            } while (opcion != 4);
+            } while (opcion != 6);
 
 
 
